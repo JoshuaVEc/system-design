@@ -19,4 +19,21 @@ class BalanceadorMenosConexiones:
         # Si hay empate, gana el que aparece primero en la lista.
         # Enviale la solicitud y devuelve su nombre. Si ningun servidor
         # puede atenderla, devuelve None.
-        raise NotImplementedError
+        
+        menor =float('inf')
+        servidor_elegido = None 
+
+        for servidor in self.servidores:
+            if servidor.health_check() and servidor.puede_atender():
+                if servidor.conexiones_activas() < menor:
+                    servidor_elegido = servidor
+                    menor = servidor.conexiones_activas()
+
+        
+        if servidor_elegido is not None:
+            servidor_elegido.atender(duracion)
+            return servidor_elegido.nombre
+
+        return None 
+        
+        
