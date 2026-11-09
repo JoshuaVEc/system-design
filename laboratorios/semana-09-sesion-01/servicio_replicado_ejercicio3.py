@@ -13,56 +13,85 @@ los tests cuentan en que nodo hiciste cada lectura.
 from datos_reservas import ReservaRegistrada
 
 
+def _obtener_campo(reserva, campo):
+    
+    if hasattr(reserva, campo):
+        return getattr(reserva, campo)
+    return None
+
+def _obtener_id(reserva):
+   
+    if hasattr(reserva, "id"): return reserva.id
+    if hasattr(reserva, "id_reserva"): return reserva.id_reserva
+    if isinstance(reserva, tuple) and len(reserva) > 0: return reserva[0]
+    return None
+
+
 class ServicioDeReservasReplicado:
     def __init__(self, base):
         self.base = base
         self.siguiente_id = 1
         
-        self.estudiantes_con_escritura = set()
+        self.ultima_reserva_estudiante = {}
 
     def cancha_disponible(self, campus, cancha, fecha, hora):
-        
+       
         reservas = self.base.leer_de_primaria()
         for r in reservas:
-            r_campus = r.get("campus") if isinstance(r, dict) else r.campus
-            r_cancha = r.get("cancha") if isinstance(r, dict) else r.cancha
-            r_fecha = r.get("fecha") if isinstance(r, dict) else r.fecha
-            r_hora = r.get("hora") if isinstance(r, dict) else r.hora
-
-            if r_campus == campus and r_cancha == cancha and r_fecha == fecha and r_hora == hora:
+            if (_obtener_campo(r, "campus") == campus and
+                _obtener_campo(r, "cancha") == cancha and
+                _obtener_campo(r, "fecha") == fecha and
+                _obtener_campo(r, "hora") == hora):
                 return False
         return True
 
     def reservar(self, id_estudiante, campus, cancha, fecha, hora):
         if not self.cancha_disponible(campus, cancha, fecha, hora):
             return None
-        reserva = ReservaRegistrada(self.siguiente_id, id_estudiante, campus, cancha, fecha, hora)
-        self.siguiente_id = self.siguiente_id + 1
+        
+        id_asignado = self.siguiente_id
+        reserva = ReservaRegistrada(id_asignado, id_estudiante, campus, cancha, fecha, hora)
+        self.siguiente_id += 1
         self.base.escribir(reserva)
         
-        self.estudiantes_con_escritura.add(id_estudiante)
+        
+        self.ultima_reserva_estudiante[id_estudiante] = id_asignado
         return reserva
 
     def mis_reservas(self, id_estudiante):
-       
-        if id_estudiante in self.estudiantes_con_escritura:
-            reservas = self.base.leer_de_primaria()
-        else:
+        
+        if id_estudiante not in self.ultima_reserva_estudiante:
             reservas = self.base.leer_de_replica()
+            return [
+                r for r in reservas
+                if _obtener_campo(r, "id_estudiante") == id_estudiante
+            ]
 
-        encontradas = []
-        for r in reservas:
-            r_id = r.get("id_estudiante") if isinstance(r, dict) else r.id_estudiante
-            if r_id == id_estudiante:
-                encontradas.append(r)
-        return encontradas
+        
+        reservas_replica = self.base.leer_de_replica()
+        id_esperado = self.ultima_reserva_estudiante[id_estudiante]
+
+        ids_en_replica = {_obtener_id(r) for r in reservas_replica}
+
+        if id_esperado in ids_en_replica:
+           
+            return [
+                r for r in reservas_replica
+                if _obtener_campo(r, "id_estudiante") == id_estudiante
+            ]
+
+       
+        reservas_primaria = self.base.leer_de_primaria()
+        return [
+            r for r in reservas_primaria
+            if _obtener_campo(r, "id_estudiante") == id_estudiante
+        ]
 
     def ocupacion_del_campus(self, campus):
-       
+        
         reservas = self.base.leer_de_replica()
         total = 0
         for r in reservas:
-            r_campus = r.get("campus") if isinstance(r, dict) else r.campus
-            if r_campus == campus:
+            if _obtener_campo(r, "campus") == campus:
                 total += 1
         return total

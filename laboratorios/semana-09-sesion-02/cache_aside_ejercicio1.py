@@ -31,11 +31,7 @@ class ServicioConCacheAside:
         self.fallos = 0
 
     def disponibilidad(self, cancha, fecha):
-        # TODO: cache-aside. Usa la tupla (cancha, fecha) como clave de
-        # self.cache. Si la clave ya esta, cuenta un acierto y devuelve lo
-        # guardado sin tocar el repositorio. Si no esta, cuenta un fallo,
-        # consulta el repositorio, guarda la respuesta en self.cache y
-        # devuelvela.
+        
         clave = (cancha,fecha)
         if clave in self.cache:
             self.aciertos+=1
