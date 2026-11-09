@@ -35,20 +35,36 @@ class ApiReservaU:
         return Respuesta(404, {"error": "ruta desconocida"})
 
     def consultar_disponibilidad(self, cancha, fecha):
-        # TODO 1: si la cancha no esta en CANCHAS, responde 404 con
-        # {"error": "cancha desconocida"}. Si esta, responde 200 con
-        # {"cancha": ..., "fecha": ..., "libres": [...]}.
-        raise NotImplementedError
+        if cancha not in CANCHAS:
+            return Respuesta(404, {"error": "cancha desconocida"})
+            
+       
+        horas_libres = self.repositorio.libres(cancha, fecha)
+        return Respuesta(200, {
+            "cancha": cancha,
+            "fecha": fecha,
+            "libres": horas_libres
+        })
 
     def crear_reserva(self, cuerpo):
-        # TODO 2: en este orden,
-        # - si falta alguno de CAMPOS_DE_RESERVA en el cuerpo, 400 con
-        #   {"error": "faltan campos"};
-        # - si la cancha no existe, 404 con {"error": "cancha desconocida"};
-        # - si la hora ya esta ocupada, 409 con {"error": "hora ocupada"};
-        # - si no, crea la reserva en el repositorio y responde 201 con la
-        #   reserva creada (id, estudiante, cancha, fecha, hora).
-        raise NotImplementedError
+        if not cuerpo or any(campo not in cuerpo for campo in CAMPOS_DE_RESERVA):
+            return Respuesta(400, {"error": "faltan campos"})
+            
+        cancha = cuerpo["cancha"]
+       
+        if cancha not in CANCHAS:
+            return Respuesta(404, {"error": "cancha desconocida"})
+            
+        
+        fecha = cuerpo["fecha"]
+        hora = cuerpo["hora"]
+        if self.repositorio.ocupada(cancha, fecha, hora):
+            return Respuesta(409, {"error": "hora ocupada"})
+            
+        
+        estudiante = cuerpo["estudiante"]
+        nueva_reserva = self.repositorio.crear(estudiante, cancha, fecha, hora)
+        return Respuesta(201, nueva_reserva)
 
     def crear_pago(self, cuerpo):
         reserva = self.repositorio.buscar(cuerpo["reserva_id"])
