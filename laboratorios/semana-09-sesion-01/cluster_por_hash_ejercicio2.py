@@ -20,36 +20,56 @@ class ClusterPorHash:
             self.shards.append([])
 
     def shard_de(self, id_estudiante):
-        # TODO: devuelve el shard (0 a cantidad_de_shards - 1) de este
-        # estudiante: el hash estable de su id, modulo la cantidad de
-        # shards.
-        raise NotImplementedError
+        # Hash estable del id_estudiante modulo la cantidad de shards
+        return hash_estable(id_estudiante) % self.cantidad_de_shards
 
     def insertar(self, reserva):
-        # TODO: agrega la reserva a la lista del shard que le corresponde
-        # segun su id_estudiante.
-        raise NotImplementedError
+        
+        id_est = reserva.get("id_estudiante") if isinstance(reserva, dict) else reserva.id_estudiante
+        shard_id = self.shard_de(id_est)
+        self.shards[shard_id].append(reserva)
 
     def tamanos(self):
-        # TODO: devuelve una lista con cuantas reservas tiene cada shard.
-        raise NotImplementedError
+        
+        return [len(shard) for shard in self.shards]
 
     def reservas_de_estudiante(self, id_estudiante):
-        # TODO: consulta dirigida. Devuelve una tupla
-        # (reservas_encontradas, shards_consultados), revisando solo el
-        # shard donde viven las reservas de ese estudiante.
-        raise NotImplementedError
+        
+        shard_id = self.shard_de(id_estudiante)
+        encontradas = []
+        for r in self.shards[shard_id]:
+            r_id = r.get("id_estudiante") if isinstance(r, dict) else r.id_estudiante
+            if r_id == id_estudiante:
+                encontradas.append(r)
+        return (encontradas, 1)
+    
+
 
     def reservas_de_cancha(self, campus, cancha, fecha):
-        # TODO: devuelve una tupla (reservas_encontradas,
-        # shards_consultados) con todas las reservas de esa cancha, de ese
-        # campus, en esa fecha. Piensa primero en cuantos shards tienes
-        # que revisar para no perder ninguna.
-        raise NotImplementedError
+        
+        encontradas = []
+        for shard in self.shards:
+            for r in shard:
+                r_campus = r.get("campus") if isinstance(r, dict) else r.campus
+                r_cancha = r.get("cancha") if isinstance(r, dict) else r.cancha
+                r_fecha = r.get("fecha") if isinstance(r, dict) else r.fecha
+
+                if r_campus == campus and r_cancha == cancha and r_fecha == fecha:
+                    encontradas.append(r)
+
+        return (encontradas, self.cantidad_de_shards)
 
 
 def fraccion_que_cambia_de_shard(claves, shards_antes, shards_despues):
-    # TODO: devuelve que fraccion de las claves (entre 0 y 1) cae en un
-    # shard distinto al pasar de "shards_antes" a "shards_despues" shards
-    # con este mismo reparto por hash y modulo.
-    raise NotImplementedError
+    
+    if not claves:
+        return 0.0
+
+    cambiadas = 0
+    for clave in claves:
+        shard_antes = hash_estable(clave) % shards_antes
+        shard_despues = hash_estable(clave) % shards_despues
+        if shard_antes != shard_despues:
+            cambiadas += 1
+
+    return cambiadas / len(claves)

@@ -17,12 +17,21 @@ class ServicioDeReservasReplicado:
     def __init__(self, base):
         self.base = base
         self.siguiente_id = 1
+        
+        self.estudiantes_con_escritura = set()
 
     def cancha_disponible(self, campus, cancha, fecha, hora):
-        # TODO: devuelve True si ninguna reserva ocupa esa cancha, en ese
-        # campus, esa fecha y esa hora. Elige de que nodo leer: esta
-        # respuesta decide si se acepta una reserva nueva.
-        raise NotImplementedError
+        
+        reservas = self.base.leer_de_primaria()
+        for r in reservas:
+            r_campus = r.get("campus") if isinstance(r, dict) else r.campus
+            r_cancha = r.get("cancha") if isinstance(r, dict) else r.cancha
+            r_fecha = r.get("fecha") if isinstance(r, dict) else r.fecha
+            r_hora = r.get("hora") if isinstance(r, dict) else r.hora
+
+            if r_campus == campus and r_cancha == cancha and r_fecha == fecha and r_hora == hora:
+                return False
+        return True
 
     def reservar(self, id_estudiante, campus, cancha, fecha, hora):
         if not self.cancha_disponible(campus, cancha, fecha, hora):
@@ -30,16 +39,30 @@ class ServicioDeReservasReplicado:
         reserva = ReservaRegistrada(self.siguiente_id, id_estudiante, campus, cancha, fecha, hora)
         self.siguiente_id = self.siguiente_id + 1
         self.base.escribir(reserva)
+        
+        self.estudiantes_con_escritura.add(id_estudiante)
         return reserva
 
     def mis_reservas(self, id_estudiante):
-        # TODO: devuelve las reservas de este estudiante. Lee de la replica
-        # siempre que puedas, para quitarle carga a la primaria, pero un
-        # estudiante que acaba de reservar tiene que ver su reserva aunque
-        # la replica todavia no la tenga (leer lo que uno mismo escribio).
-        raise NotImplementedError
+       
+        if id_estudiante in self.estudiantes_con_escritura:
+            reservas = self.base.leer_de_primaria()
+        else:
+            reservas = self.base.leer_de_replica()
+
+        encontradas = []
+        for r in reservas:
+            r_id = r.get("id_estudiante") if isinstance(r, dict) else r.id_estudiante
+            if r_id == id_estudiante:
+                encontradas.append(r)
+        return encontradas
 
     def ocupacion_del_campus(self, campus):
-        # TODO: devuelve cuantas reservas tiene el campus. Es el reporte
-        # que mira la administracion una vez al dia: elige de que nodo leer.
-        raise NotImplementedError
+       
+        reservas = self.base.leer_de_replica()
+        total = 0
+        for r in reservas:
+            r_campus = r.get("campus") if isinstance(r, dict) else r.campus
+            if r_campus == campus:
+                total += 1
+        return total
