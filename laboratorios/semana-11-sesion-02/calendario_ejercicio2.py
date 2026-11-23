@@ -35,6 +35,7 @@ class CalendarioDeCancha:
     def horas_de(self, estudiante):
         # TODO 1: cuantas horas suman las reservas del estudiante en este
         # calendario.
+        
         raise NotImplementedError
 
     def reservar(self, id_reserva, estudiante, inicio, fin):
