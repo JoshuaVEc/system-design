@@ -11,9 +11,7 @@ from http_simulado import Solicitud
 if __name__ == "__main__":
     repositorio = RepositorioSqlite(":memory:")
     notificador = NotificadorEnMemoria()
-    # TODO 4: crea un solo ReservarCancha con el repositorio y el
-    # notificador, y pasaselo a los dos adaptadores.
-    reservar_cancha = None
+    reservar_cancha = ReservarCancha(repositorio, notificador)
     api = ApiHttp(reservar_cancha)
     chat = AdaptadorDeMensajeria(reservar_cancha)
 

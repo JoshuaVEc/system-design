@@ -16,6 +16,7 @@ Y las pruebas con:
 """
 from dataclasses import dataclass
 
+
 HORA_DE_APERTURA = 7
 HORA_DE_CIERRE = 21
 
@@ -23,24 +24,18 @@ HORA_DE_CIERRE = 21
 class FranjaHoraria:
     fecha: str
     inicio: int
-    fin : int
-    def _post_init_(self):
-        if self.inicio >= self.fin or self.inicio < HORA_DE_APERTURA or self.fin> HORA_DE_CIERRE:
-            raise ValueError('Franka invalida')
-    # TODO 2: un metodo __post_init__(self) que lance
-    # ValueError("franja invalida") si inicio no es menor que fin, si
-    # inicio es menor que HORA_DE_APERTURA o si fin es mayor que
-    # HORA_DE_CIERRE.
+    fin: int
+
+    def __post_init__(self):
+        if self.inicio >= self.fin or self.inicio < HORA_DE_APERTURA or self.fin > HORA_DE_CIERRE:
+            raise ValueError("franja invalida")
 
     def duracion(self):
         return self.fin - self.inicio
 
     def se_solapa_con(self, otra):
-        # TODO 3: True si las dos franjas son del mismo dia y comparten al
-        # menos una parte de su intervalo. De 18 a 19 y de 19 a 20 no se
-        # solapan.
-    
-        return  (self.fecha==otra.fecha and self.inicio< otra.fin and otra.inicio <self.fin)
+        return self.fecha == otra.fecha and self.inicio < otra.fin and otra.inicio < self.fin
+
 
 @dataclass
 class Reserva:
@@ -54,8 +49,7 @@ class Reserva:
         def __hash__(self):
              return hash(self,id)
 
-    # TODO 4: un metodo __eq__(self, otra) que compare solo los ids, y un
-    # metodo __hash__(self) que devuelva hash(self.id).
+    
 
 
 if __name__ == "__main__":

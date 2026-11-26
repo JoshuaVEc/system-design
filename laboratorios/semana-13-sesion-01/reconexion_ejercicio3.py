@@ -35,4 +35,37 @@ Esta vez no hay codigo de partida. Corre las pruebas con:
 """
 
 from canales_ejercicio1 import Canales
-# TODO: escribe aqui la clase CanalConHistorial.
+class CanalConHistorial(Canales):
+    def __init__(self, historial=50):
+        super().__init__()
+        self.limite_historial = historial
+        self._ultimo = {}
+        self._historial = {}
+
+    def ultimo_numero(self, tema):
+        return self._ultimo.get(tema, 0)
+
+    def publicar(self, tema, mensaje):
+        numero = self._ultimo.get(tema, 0) + 1
+        self._ultimo[tema] = numero
+        texto = f"{numero} {mensaje}"
+        lista = self._historial.setdefault(tema, [])
+        lista.append((numero, texto))
+        if len(lista) > self.limite_historial:
+            lista.pop(0)
+        super().publicar(tema, texto)
+        return numero
+
+    def reconectar(self, tema, conexion, ultimo_visto):
+        ultimo = self.ultimo_numero(tema)
+        if ultimo_visto > ultimo:
+            raise ValueError("numero desconocido")
+        if ultimo_visto < ultimo:
+            lista = self._historial.get(tema, [])
+            if not lista or ultimo_visto + 1 < lista[0][0]:
+                conexion.enviar("recargar")
+            else:
+                for numero, texto in lista:
+                    if numero > ultimo_visto:
+                        conexion.enviar(texto)
+        self.suscribir(tema, conexion)

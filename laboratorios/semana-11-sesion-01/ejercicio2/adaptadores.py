@@ -100,10 +100,11 @@ class ApiHttp:
 
 
 class NotificadorEnMemoria(Notificador):
-    # TODO 2: guarda cada notificacion en la lista self.enviados como una
-    # tupla (estudiante, mensaje), en el orden en que llegan.
     def __init__(self):
         self.enviados = []
+
+    def notificar(self, estudiante, mensaje):
+        self.enviados.append((estudiante, mensaje))
 
 
 class AdaptadorDeMensajeria:
@@ -114,10 +115,11 @@ class AdaptadorDeMensajeria:
         self.reservar_cancha = reservar_cancha
 
     def atender(self, estudiante, texto):
-        # TODO 3: separa el texto en palabras. Si no son exactamente 4, la
-        # primera no es "reservar" o la cuarta no son solo digitos,
-        # responde "No entendi. Escribe: reservar <cancha> <fecha> <hora>".
-        # Si no, llama al caso de uso y responde
-        # "Listo: reserva r-1, cancha-1, 2026-11-10 a las 18:00" o
-        # "No se pudo reservar: hora ocupada" (con el motivo que sea).
-        raise NotImplementedError
+        palabras = texto.split()
+        if len(palabras) != 4 or palabras[0] != "reservar" or not palabras[3].isdigit():
+            return "No entendi. Escribe: reservar <cancha> <fecha> <hora>"
+        resultado = self.reservar_cancha.ejecutar(estudiante, palabras[1], palabras[2], int(palabras[3]))
+        if resultado["estado"] == "rechazada":
+            return f"No se pudo reservar: {resultado['motivo']}"
+        reserva = resultado["reserva"]
+        return f"Listo: reserva {reserva.id}, {reserva.cancha}, {reserva.fecha} a las {texto_de_hora(reserva.hora)}"

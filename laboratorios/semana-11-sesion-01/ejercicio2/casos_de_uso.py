@@ -6,12 +6,9 @@ from dominio import motivo_de_rechazo, texto_de_hora
 
 
 class ReservarCancha:
-    # TODO 1: el caso de uso recibe tambien un notificador (el puerto
-    # Notificador), y al confirmar una reserva le envia al estudiante
-    # "Reserva r-1 confirmada: cancha-1, 2026-11-10 a las 18:00" (con
-    # texto_de_hora para la hora). Una reserva rechazada no notifica nada.
-    def __init__(self, repositorio):
+    def __init__(self, repositorio, notificador):
         self.repositorio = repositorio
+        self.notificador = notificador
 
     def ejecutar(self, estudiante, cancha, fecha, hora):
         hora_ocupada = self.repositorio.ocupada(cancha, fecha, hora)
@@ -20,4 +17,8 @@ class ReservarCancha:
         if motivo is not None:
             return {"estado": "rechazada", "motivo": motivo}
         reserva = self.repositorio.guardar(estudiante, cancha, fecha, hora)
+        self.notificador.notificar(
+            estudiante,
+            f"Reserva {reserva.id} confirmada: {reserva.cancha}, {reserva.fecha} a las {texto_de_hora(reserva.hora)}",
+        )
         return {"estado": "confirmada", "reserva": reserva}
