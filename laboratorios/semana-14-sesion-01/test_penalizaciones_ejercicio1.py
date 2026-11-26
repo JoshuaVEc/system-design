@@ -3,7 +3,11 @@ del codigo que la hace pasar, una a la vez, en el orden de la lista de
 penalizaciones_ejercicio1.py.
 """
 
-from penalizaciones_ejercicio1 import HistorialDePenalizaciones, puntos_por_cancelar
+from penalizaciones_ejercicio1 import (
+    HistorialDePenalizaciones,
+    puntos_por_cancelar,
+    puntos_por_no_presentarse,
+)
 
 
 def test_cancelar_con_mas_de_un_dia_no_penaliza():
@@ -33,3 +37,19 @@ def test_estudiante_nuevo_ver_bloqueado():
     assert historial.esta_bloqueada('Pedro') == False
 
 #pruebas que debemos seguir creando para confirmr la calidad del comportamiento de la funcionalidad 
+
+def test_borde_120_minutos_da_1_punto():
+    assert puntos_por_cancelar(120) == 1
+    assert puntos_por_cancelar(119) == 2
+
+def test_no_presentarse_da_3_puntos_y_bloquea():
+    assert puntos_por_no_presentarse() == 3
+    historial = HistorialDePenalizaciones()
+    historial.no_se_presento("Ana")
+    assert historial.esta_bloqueada("Ana") == True
+
+def test_penalizaciones_de_un_estudiante_no_bloquean_a_otro():
+    historial = HistorialDePenalizaciones()
+    historial.no_se_presento("Ana")
+    assert historial.esta_bloqueada("Ana") == True
+    assert historial.esta_bloqueada("Beto") == False

@@ -37,3 +37,41 @@ Corran las pruebas con:
 
     pytest test_recurrentes_ejercicio3.py
 """
+
+from datetime import date, timedelta
+
+from reservas import MAXIMO_HORAS_POR_ESTUDIANTE, CalendarioDeCancha, FranjaHoraria
+
+MINIMO_SEMANAS = 1
+MAXIMO_SEMANAS = 12
+
+
+class AgendaDeCancha:
+    def __init__(self, cancha):
+        self.cancha = cancha
+        self._calendarios = {}
+
+    def calendario(self, fecha):
+        if fecha not in self._calendarios:
+            self._calendarios[fecha] = CalendarioDeCancha(self.cancha, fecha)
+        return self._calendarios[fecha]
+
+    def reservar_cada_semana(self, id_base, estudiante, fecha_inicial, inicio, fin, semanas):
+        if semanas < MINIMO_SEMANAS or semanas > MAXIMO_SEMANAS:
+            raise ValueError("cantidad de semanas invalida")
+        franja_base = FranjaHoraria(fecha_inicial, inicio, fin)
+        duracion = franja_base.duracion()
+        fecha_actual = date.fromisoformat(fecha_inicial)
+        resultados = []
+        for indice in range(1, semanas + 1):
+            fecha_iso = fecha_actual.isoformat()
+            cal = self.calendario(fecha_iso)
+            if not cal.esta_libre(inicio, fin):
+                resultados.append((fecha_iso, "ocupada"))
+            elif cal.horas_de(estudiante) + duracion > MAXIMO_HORAS_POR_ESTUDIANTE:
+                resultados.append((fecha_iso, "limite"))
+            else:
+                cal.reservar(f"{id_base}-{indice}", estudiante, inicio, fin)
+                resultados.append((fecha_iso, "reservada"))
+            fecha_actual = fecha_actual + timedelta(days=7)
+        return resultados

@@ -39,9 +39,7 @@ class RepositorioSQLite:
         return fila[0]
 
     def borrar(self, id_reserva):
-        self.conexion.execute(
-            "DELETE FROM reservas WHERE estudiante = (SELECT estudiante FROM reservas WHERE id = ?)",
-            (id_reserva,))
+        self.conexion.execute("DELETE FROM reservas WHERE id = ?", (id_reserva,))
         self.conexion.commit()
 
     def sumar_puntos(self, estudiante, puntos):

@@ -129,9 +129,6 @@ class GrupoDeRecursos(Recurso):
         return resultado
 
     def capacidad_total(self):
-        return sum(hijo.capacidad_total() for hijo in self.hijos)
-
-    def capacidad_total(self):
         total=0
 
         for hijo in self.hijos:

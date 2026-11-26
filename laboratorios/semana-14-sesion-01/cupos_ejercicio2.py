@@ -73,16 +73,11 @@ class CupoSemanal():
             raise ValueError("cupo semanal agotado")
         
     def cancelar(self,id_reserva):
+        if id_reserva not in self.reservas:
+            raise ValueError("reserva desconocida")
         estudiante,fecha =self.reservas.pop(id_reserva)
         self._cupos[estudiante][semana_de(fecha)]+=1
         
 
     def registrar_equipo_oficial(self,estudiante):
         self.equipoOficial[estudiante]={}
-
-    
-  
-       
-        
-            
-
