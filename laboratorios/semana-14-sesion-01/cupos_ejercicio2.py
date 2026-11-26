@@ -31,8 +31,58 @@ Cuando termines la lista, y no antes, corre las pruebas de aceptacion:
 from datetime import date
 
 
+
 def semana_de(fecha):
     """La semana de una fecha "AAAA-MM-DD", como (anio, numero de semana).
     Dos fechas de la misma semana (de lunes a domingo) dan lo mismo."""
     anio, semana, _ = date.fromisoformat(fecha).isocalendar()
     return (anio, semana)
+
+CUPOS_ESTUDIANTES =3
+CUPOS_EQUIPO_OFICIAL =6
+class CupoSemanal():
+    def __init__(self):
+        self._cupos={}
+        self.reservas={}
+        self.equipoOficial={}
+
+    def _inicializar(self, estudiante,fecha):
+        semana = semana_de(fecha)
+        if estudiante not in  self._cupos:
+            self._cupos[estudiante] ={}
+        if estudiante not in self.equipoOficial:
+             if semana not in self._cupos[estudiante]:
+                 self._cupos[estudiante][semana] = CUPOS_ESTUDIANTES
+        else:
+            if semana not in self._cupos[estudiante]:
+                self._cupos[estudiante][semana]=CUPOS_EQUIPO_OFICIAL
+
+    def puede_reservar(self,estudiante,fecha):
+        self._inicializar(estudiante,fecha)
+        if self._cupos[estudiante][semana_de(fecha)]>0:
+            return True
+        return False
+    
+
+
+    def registrar(self,id_reserva,estudiante,fecha):
+        if self.puede_reservar(estudiante,fecha):
+            self.reservas[id_reserva] = [estudiante,fecha]
+            self._cupos[estudiante][semana_de(fecha)] -= 1
+        else:
+            raise ValueError("cupo semanal agotado")
+        
+    def cancelar(self,id_reserva):
+        estudiante,fecha =self.reservas.pop(id_reserva)
+        self._cupos[estudiante][semana_de(fecha)]+=1
+        
+
+    def registrar_equipo_oficial(self,estudiante):
+        self.equipoOficial[estudiante]={}
+
+    
+  
+       
+        
+            
+
