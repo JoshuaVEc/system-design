@@ -24,16 +24,43 @@ class ApiDePagos:
         return Respuesta(404, {"error": "ruta desconocida"})
 
     def crear_pago(self, solicitud):
-        # TODO: lee la clave con solicitud.cabeceras.get("Idempotency-Key").
-        # - Si la solicitud no trae clave, responde 400 con
-        #   {"error": "falta Idempotency-Key"}, sin cobrar.
-        # - Si la clave ya esta en self.respuestas_guardadas y el cuerpo es
-        #   el mismo de la primera vez, devuelve la respuesta guardada, sin
-        #   cobrar otra vez. Si el cuerpo es distinto, responde 422 con
-        #   {"error": "clave usada con otro cuerpo"}.
-        # - Si la clave es nueva: si la reserva no existe, 404 con
-        #   {"error": "reserva desconocida"}. Si existe, cobra con
-        #   self.pasarela.cobrar(estudiante, monto), arma la respuesta 201
-        #   con {"id": id del cobro, "reserva_id": ..., "monto": ...},
-        #   guardala junto con el cuerpo de la solicitud, y devuelvela.
-        raise NotImplementedError
+        clave = solicitud.cabeceras.get("Idempotency-Key")
+        
+       
+        if clave is None:
+            return Respuesta(400, {"error": "falta Idempotency-Key"})
+            
+        cuerpo_actual = solicitud.cuerpo
+        
+      
+        if clave in self.respuestas_guardadas:
+            datos_guardados = self.respuestas_guardadas[clave]
+            
+           
+            if datos_guardados["cuerpo"] == cuerpo_actual:
+                return datos_guardados["respuesta"]
+            else:
+                return Respuesta(422, {"error": "clave usada con otro cuerpo"})
+                
+       
+        reserva = self.repositorio.buscar(cuerpo_actual["reserva_id"])
+        if reserva is None:
+            return Respuesta(404, {"error": "reserva desconocida"})
+            
+       
+        id_cobro = self.pasarela.cobrar(reserva["estudiante"], cuerpo_actual["monto"])
+        
+        
+        respuesta = Respuesta(201, {
+            "id": id_cobro,
+            "reserva_id": reserva["id"],
+            "monto": cuerpo_actual["monto"]
+        })
+        
+        
+        self.respuestas_guardadas[clave] = {
+            "cuerpo": cuerpo_actual,
+            "respuesta": respuesta
+        }
+        
+        return respuesta

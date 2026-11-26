@@ -15,19 +15,7 @@ class BalanceadorRoundRobin:
         self.siguiente = 0
 
     def enviar(self, duracion):
-        # TODO: reparte las solicitudes en turnos: la primera al servidor
-        # en la posicion self.siguiente, la proxima al que sigue, y al
-        # llegar al final de la lista, vuelve al primero (el operador %
-        # resuelve la vuelta).
-        #
-        # Antes de enviarle una solicitud a un servidor, consulta su
-        # health_check(). Si no esta sano, o si atender(duracion)
-        # devuelve False porque esta lleno, prueba con el siguiente de la
-        # lista, sin pasar dos veces por el mismo servidor.
-        #
-        # Si un servidor acepto la solicitud, deja self.siguiente apuntando
-        # al servidor que viene despues de el y devuelve servidor.nombre.
-        # Si ninguno la acepto, devuelve None.
+        
         cantidad = len(self.servidores)
         intento=self.siguiente
         for intento in range(cantidad):

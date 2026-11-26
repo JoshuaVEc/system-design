@@ -23,14 +23,19 @@ SHARD_DE_CAMPUS = {
 def shard_por_campus(reserva):
     # TODO: devuelve el numero de shard (0 a 3) que le corresponde a la
     # reserva segun su campus, usando el diccionario SHARD_DE_CAMPUS.
-    raise NotImplementedError
+    campus = reserva.get("campus") if isinstance(reserva, dict) else reserva.campus
+    return SHARD_DE_CAMPUS[campus]
+    
 
 
 def contar_por_shard(reservas, cantidad_de_shards):
-    # TODO: devuelve una lista con "cantidad_de_shards" posiciones, donde
-    # la posicion i es cuantas reservas caen en el shard i segun
-    # shard_por_campus(...).
-    raise NotImplementedError
+    conteo = [0] * cantidad_de_shards
+    
+    for reserva in reservas:
+        shard_id = shard_por_campus(reserva)
+        conteo[shard_id] += 1
+        
+    return conteo
 
 
 if __name__ == "__main__":
