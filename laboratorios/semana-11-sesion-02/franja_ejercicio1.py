@@ -15,33 +15,27 @@ Y las pruebas con:
     pytest test_franja_ejercicio1.py
 """
 
+from dataclasses import dataclass
+
 HORA_DE_APERTURA = 7
 HORA_DE_CIERRE = 21
 
 
-# TODO 1: convierte FranjaHoraria en un value object inmutable con
-# @dataclass(frozen=True) (from dataclasses import dataclass), con tres
-# campos: fecha (str), inicio (int) y fin (int). Borra el __init__: el
-# decorador lo genera.
+@dataclass(frozen=True)
 class FranjaHoraria:
-    def __init__(self, fecha, inicio, fin):
-        self.fecha = fecha
-        self.inicio = inicio
-        self.fin = fin
+    fecha: str
+    inicio: int
+    fin: int
 
-    # TODO 2: un metodo __post_init__(self) que lance
-    # ValueError("franja invalida") si inicio no es menor que fin, si
-    # inicio es menor que HORA_DE_APERTURA o si fin es mayor que
-    # HORA_DE_CIERRE.
+    def __post_init__(self):
+        if self.inicio >= self.fin or self.inicio < HORA_DE_APERTURA or self.fin > HORA_DE_CIERRE:
+            raise ValueError("franja invalida")
 
     def duracion(self):
         return self.fin - self.inicio
 
     def se_solapa_con(self, otra):
-        # TODO 3: True si las dos franjas son del mismo dia y comparten al
-        # menos una parte de su intervalo. De 18 a 19 y de 19 a 20 no se
-        # solapan.
-        return False
+        return self.fecha == otra.fecha and self.inicio < otra.fin and otra.inicio < self.fin
 
 
 class Reserva:
@@ -50,8 +44,13 @@ class Reserva:
         self.estudiante = estudiante
         self.franja = franja
 
-    # TODO 4: un metodo __eq__(self, otra) que compare solo los ids, y un
-    # metodo __hash__(self) que devuelva hash(self.id).
+    def __eq__(self, otra):
+        if not isinstance(otra, Reserva):
+            return NotImplemented
+        return self.id == otra.id
+
+    def __hash__(self):
+        return hash(self.id)
 
 
 if __name__ == "__main__":
